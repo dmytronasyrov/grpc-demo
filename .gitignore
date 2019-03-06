@@ -1,13 +1,13 @@
-build/
-bin/
-out/
+build
+bin
+out
 .classpath
 .project
-.gradle/
-.idea/
-.settings/
-.vscode/
-target/
+.gradle
+.idea
+.settings
+.vscode
+target
 
 # Ignore Gradle GUI config
 gradle-app.setting
