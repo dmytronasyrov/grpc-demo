@@ -1,9 +1,7 @@
 package com.pharosproduction.grpc.greeting.server;
 
-import com.pharosproduction.grpc.greeting.GreetRequest;
-import com.pharosproduction.grpc.greeting.GreetResponse;
-import com.pharosproduction.grpc.greeting.Greeting;
-import com.pharosproduction.grpc.greeting.GreetingServiceGrpc;
+import com.pharosproduction.grpc.greeting.*;
+import io.grpc.Context;
 import io.grpc.stub.StreamObserver;
 
 public class GreetServiceImpl extends GreetingServiceGrpc.GreetingServiceImplBase {
@@ -92,5 +90,33 @@ public class GreetServiceImpl extends GreetingServiceGrpc.GreetingServiceImplBas
         responseObserver.onCompleted();
       }
     };
+  }
+
+  @Override
+  public void greetDeadline(GreedDeadlineRequest request, StreamObserver<GreetDeadlineResponse> responseObserver) {
+    Context current = Context.current();
+
+    try {
+      for (int i =0; i < 3; i++) {
+        if (current.isCancelled()) {
+          return;
+        } else {
+          System.out.println("Sleep for 100 ms");
+          Thread.sleep(100);
+        }
+      }
+
+      System.out.println("Sending response...");
+
+      responseObserver.onNext(
+        GreetDeadlineResponse.newBuilder()
+          .setResult("Hello " + request.getGreeting().getFirstName())
+          .build()
+      );
+
+      responseObserver.onCompleted();
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
   }
 }

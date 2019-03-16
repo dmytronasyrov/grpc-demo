@@ -3,6 +3,7 @@ package com.pharosproduction.grpc.calculator.client;
 import com.pharosproduction.grpc.calculator.*;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 
 import java.util.Arrays;
@@ -34,9 +35,9 @@ public class CalculatorClient {
 //        System.out.println("PRIME IS: " + response.getPrimeFactor());
 //      });
 
-    CountDownLatch latch = new CountDownLatch(1);
+//    CountDownLatch latch = new CountDownLatch(1);
 
-    CalculatorServiceGrpc.CalculatorServiceStub client = CalculatorServiceGrpc.newStub(channel);
+//    CalculatorServiceGrpc.CalculatorServiceStub client = CalculatorServiceGrpc.newStub(channel);
 //    StreamObserver<AverageRequest> requestObserver = client.computeAverage(new StreamObserver<AverageResponse>() {
 //      @Override
 //      public void onNext(AverageResponse value) {
@@ -60,48 +61,58 @@ public class CalculatorClient {
 //      requestObserver.onNext(AverageRequest.newBuilder().setNumber(i).build());
 //    }
 
-    StreamObserver<FindMaxRequest> requestObserver = client.findMax(new StreamObserver<FindMaxResponse>() {
-      @Override
-      public void onNext(FindMaxResponse value) {
-        System.out.println("Got new max from server: " + value.getMaximum());
-      }
+//    StreamObserver<FindMaxRequest> requestObserver = client.findMax(new StreamObserver<FindMaxResponse>() {
+//      @Override
+//      public void onNext(FindMaxResponse value) {
+//        System.out.println("Got new max from server: " + value.getMaximum());
+//      }
+//
+//      @Override
+//      public void onError(Throwable t) {
+//        latch.countDown();
+//      }
+//
+//      @Override
+//      public void onCompleted() {
+//        latch.countDown();
+//        System.out.println("Server is done sending messages");
+//      }
+//    });
+//
+//    Arrays.asList(3, 5, 7, 9, 8, 30, 12).forEach(number -> {
+//      System.out.println("Sending number: " + number);
+//
+//      requestObserver.onNext(FindMaxRequest.newBuilder()
+//        .setNumber(number)
+//        .build());
+//
+//      try {
+//        latch.await(1000, TimeUnit.MILLISECONDS);
+//      } catch (InterruptedException e) {
+//        e.printStackTrace();
+//      } finally {
+//        channel.shutdown();
+//      }
+//    });
+//
+//    requestObserver.onCompleted();
+//
+//    try {
+//      latch.await(3000, TimeUnit.MILLISECONDS);
+//    } catch (InterruptedException e) {
+//      e.printStackTrace();
+//    } finally {
+//      channel.shutdown();
+//    }
 
-      @Override
-      public void onError(Throwable t) {
-        latch.countDown();
-      }
 
-      @Override
-      public void onCompleted() {
-        latch.countDown();
-        System.out.println("Server is done sending messages");
-      }
-    });
-
-    Arrays.asList(3, 5, 7, 9, 8, 30, 12).forEach(number -> {
-      System.out.println("Sending number: " + number);
-
-      requestObserver.onNext(FindMaxRequest.newBuilder()
-        .setNumber(number)
-        .build());
-
-      try {
-        latch.await(1000, TimeUnit.MILLISECONDS);
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-      } finally {
-        channel.shutdown();
-      }
-    });
-
-    requestObserver.onCompleted();
+    CalculatorServiceGrpc.CalculatorServiceBlockingStub stub = CalculatorServiceGrpc.newBlockingStub(channel);
 
     try {
-      latch.await(3000, TimeUnit.MILLISECONDS);
-    } catch (InterruptedException e) {
+      stub.sqrt(SqrtRequest.newBuilder().setNumber(-1).build());
+    } catch (StatusRuntimeException e) {
+      System.out.println("Exception!!!");
       e.printStackTrace();
-    } finally {
-      channel.shutdown();
     }
   }
 }

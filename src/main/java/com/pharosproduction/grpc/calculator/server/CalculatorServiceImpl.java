@@ -1,6 +1,7 @@
 package com.pharosproduction.grpc.calculator.server;
 
 import com.pharosproduction.grpc.calculator.*;
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 
 public class CalculatorServiceImpl extends CalculatorServiceGrpc.CalculatorServiceImplBase {
@@ -101,5 +102,27 @@ public class CalculatorServiceImpl extends CalculatorServiceGrpc.CalculatorServi
         responseObserver.onCompleted();
       }
     };
+  }
+
+  @Override
+  public void sqrt(SqrtRequest request, StreamObserver<SqrtResponse> responseObserver) {
+    int number = request.getNumber();
+
+    if (number < 0) {
+      responseObserver.onError(Status.INVALID_ARGUMENT
+        .withDescription("The number should be positive")
+        .augmentDescription("Number sent: " + number)
+        .asRuntimeException()
+      );
+    } else {
+      double root = Math.sqrt(number);
+
+      responseObserver.onNext(
+        SqrtResponse.newBuilder()
+          .setRoot(root)
+          .build()
+      );
+      responseObserver.onCompleted();
+    }
   }
 }

@@ -2,27 +2,35 @@ package com.pharosproduction.grpc.greeting.client;
 
 import com.pharosproduction.grpc.greeting.*;
 
-import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
+import io.grpc.*;
+import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts;
+import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
 import io.grpc.stub.StreamObserver;
 
+import javax.net.ssl.SSLException;
+import java.io.File;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 public class GreetingClient {
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws SSLException {
     System.out.println("gRPC client starting...");
 
-    ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 5000)
-      .usePlaintext()
+//    ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 5000)
+//      .usePlaintext()
+//      .build();
+
+    ManagedChannel channel = NettyChannelBuilder.forAddress("localhost", 5000)
+      .sslContext(GrpcSslContexts.forClient().trustManager(new File("ssl/ca.crt")).build())
       .build();
 
 //    unaryCall(channel);
 //    streamingServer(channel);
 //    streamingClient(channel);
-    streamingBiDir(channel);
+//    streamingBiDir(channel);
+    doUnaryWithDeadline(channel);
   }
 
   private static void unaryCall(ManagedChannel channel) {
@@ -166,6 +174,52 @@ public class GreetingClient {
       e.printStackTrace();
     } finally {
       channel.shutdown();
+    }
+  }
+
+  private static void doUnaryWithDeadline(ManagedChannel channel) {
+    GreetingServiceGrpc.GreetingServiceBlockingStub stub = GreetingServiceGrpc.newBlockingStub(channel);
+
+    try {
+      System.out.println("Sending a request with a deadline 5000 ms");
+
+      GreetDeadlineResponse response = stub.withDeadline(Deadline.after(5000, TimeUnit.MILLISECONDS))
+        .greetDeadline(
+          GreedDeadlineRequest.newBuilder()
+            .setGreeting(
+              Greeting.newBuilder().setFirstName("John").build()
+            )
+            .build()
+        );
+
+      System.out.println("Response 1: " + response.getResult());
+    } catch (StatusRuntimeException e) {
+      if (e.getStatus() == Status.DEADLINE_EXCEEDED) {
+        System.out.println("Deadline has been exceeded");
+      } else {
+        e.printStackTrace();
+      }
+    }
+
+    try {
+      System.out.println("Sending a request with a deadline 100 ms");
+
+      GreetDeadlineResponse response = stub.withDeadline(Deadline.after(100, TimeUnit.MILLISECONDS))
+        .greetDeadline(
+          GreedDeadlineRequest.newBuilder()
+            .setGreeting(
+              Greeting.newBuilder().setFirstName("John").build()
+            )
+            .build()
+        );
+
+      System.out.println("Response 2: " + response.getResult());
+    } catch (StatusRuntimeException e) {
+      if (e.getStatus() == Status.DEADLINE_EXCEEDED) {
+        System.out.println("Deadline has been exceeded");
+      } else {
+        e.printStackTrace();
+      }
     }
   }
 }
