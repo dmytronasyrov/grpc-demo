@@ -56,5 +56,29 @@ public class BlogClient {
     } catch (StatusRuntimeException e) {
       System.out.println("Fake ID" + e.getMessage());
     }
+
+    Blog newBlog = Blog.newBuilder()
+      .setId(blogId)
+      .setAuthorId("test")
+      .setTitle("Doe")
+      .setContent("Updated content")
+      .build();
+    UpdateBlogResponse response = blogClient.updateBlog(UpdateBlogRequest.newBuilder().setBlog(newBlog).build());
+    System.out.println("Updated blog:" + response.getBlog().toString());
+
+//    System.out.println("Deleting blog");
+//    DeleteBlogResponse deleteBlogResponse = blogClient.deleteBlog(
+//      DeleteBlogRequest.newBuilder().setBlogId(blogId).build()
+//    );
+//    System.out.println("Deleted blog:" + deleteBlogResponse.getBlogId());
+
+//    ReadBlogRequest readRequestDelete = ReadBlogRequest.newBuilder()
+//      .setBlogId(blogId)
+//      .build();
+//    ReadBlogResponse readResponseDeleted = blogClient.readBlog(readRequestDelete);
+//    System.out.println("Received read blog response: " + readResponseDeleted.toString());
+
+    blogClient.listBlog(ListBlogRequest.newBuilder().build())
+      .forEachRemaining(listBlogResponse -> System.out.println(listBlogResponse.getBlog().toString()));
   }
 }
